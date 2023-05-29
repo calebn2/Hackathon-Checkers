@@ -1,0 +1,1 @@
+CheckersGame.java is what the students will program in. CheckersGameRunner.java has every other method actually runs the game. Students will complete two methods to have a working version of Checkers.
