@@ -11,6 +11,12 @@ public class CheckersGameRunner {
 
     private char[][] board;
     private boolean isRedTurn;
+    private boolean isJumpMove;
+    private boolean doubleJump;
+    private int currentRow;
+    private int currentCol;
+    private int newRow;
+    private int newCol;
 
     public CheckersGameRunner() {
         board = new char[BOARD_SIZE][BOARD_SIZE];
@@ -22,29 +28,38 @@ public class CheckersGameRunner {
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
-            printBoard();
-            System.out.println((isRedTurn ? "Red" : "Black") + "'s turn");
-            System.out.print("Enter the current row: ");
-            int currentRow = scanner.nextInt();
-            System.out.print("Enter the current column: ");
-            int currentCol = scanner.nextInt();
+            if(doubleJump == false) {
+                System.out.println("\n\n");
+                printBoard();
+                System.out.println((isRedTurn ? "Red" : "Black") + "'s turn");
+                System.out.print("Enter the current row: ");
+                currentRow = scanner.nextInt();
+                System.out.print("Enter the current column: ");
+                currentCol = scanner.nextInt();
+            }
+
             System.out.print("Enter the new row: ");
-            int newRow = scanner.nextInt();
+            newRow = scanner.nextInt();
             System.out.print("Enter the new column: ");
-            int newCol = scanner.nextInt();
+            newCol = scanner.nextInt();
 
             if (isValidMove(currentRow, currentCol, newRow, newCol)) {
+                doubleJump = false;
                 makeMove(currentRow, currentCol, newRow, newCol);
                 if (isRedTurn && newRow == 0) {
-                    CheckersGame.crownKing(newRow, newCol);
+                    CheckersGame.crownKing(board, newRow, newCol);
                 } else if (!isRedTurn && newRow == BOARD_SIZE - 1) {
-                    CheckersGame.crownKing(newRow, newCol);
+                    CheckersGame.crownKing(board, newRow, newCol);
                 }
-                if (hasCaptureMove()) {
-                    while(true) {
-                        System.out.print((isRedTurn ? "Red" : "Black") + " has a capture move. Do you want to continue your turn? y/n: ");
+                if (isJumpMove && hasCaptureMove()) {
+                    System.out.println("\n\n");
+                    printBoard();
+                    while (true) {
+                        System.out.println((isRedTurn ? "Red" : "Black")
+                                + " has a capture move. Do you want to continue your turn? y/n: ");
                         String yn = scanner.nextLine();
                         if (yn.equals("y")) {
+                            doubleJump = true;
                             break;
                         } else if (yn.equals("n")) {
                             isRedTurn = !isRedTurn;
@@ -53,17 +68,24 @@ public class CheckersGameRunner {
                             System.out.println("You did not enter a valid answer. Enter either y or n.");
                         }
                     }
-                }
-                else 
+                } else
                     isRedTurn = !isRedTurn;
             } else {
                 System.out.println("Invalid move!");
             }
+            isJumpMove = false;
 
-            if (CheckersGame.isGameOver()) {
+            if (CheckersGame.isGameOver(board)) {
+                System.out.println("\n\n");
                 printBoard();
                 System.out.println((isRedTurn ? "Black" : "Red") + " wins!");
                 break;
+            }
+
+            if (doubleJump == true) {
+                currentRow = newRow;
+                currentCol = newCol;
+                continue;
             }
         }
         scanner.close();
@@ -157,6 +179,7 @@ public class CheckersGameRunner {
                 System.out.println("jumpedPiece = " + jumpedPiece);
                 if (jumpedPiece != piece && jumpedPiece != EMPTY) {
                     board[currentRow + deltaRow][currentCol + deltaCol] = EMPTY;
+                    isJumpMove = true;
                     return true;
                 }
                 else {
